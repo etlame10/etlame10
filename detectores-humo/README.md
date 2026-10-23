@@ -10,6 +10,8 @@ No necesita instalar nada ni conexión a internet.
 
 **Opción 1 — abrir directamente:** haz doble clic en `index.html`.
 
+**Opción 1b — un solo archivo:** `dist/detectores-humo.html` contiene toda la app. Sirve para llevarla en un USB o mandarla por correo. Se regenera con `python3 tools/bundle.py`.
+
 **Opción 2 — servidor local (recomendado en clase):**
 
 ```bash

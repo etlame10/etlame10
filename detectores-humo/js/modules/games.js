@@ -191,11 +191,20 @@
     var box = h("div", { class: "panel", id: "game-box" });
     view.appendChild(tabs);
     view.appendChild(box);
-    view.appendChild(h("div", { class: "row", style: "margin-top:12px" }, [
-      h("button", { class: "btn btn-ghost btn-danger", text: "Borrar puntuaciones y progreso", onclick: function () {
-        if (window.confirm("¿Borrar todas las puntuaciones y el progreso guardado en este navegador?")) { APP.progress.reset(); APP.store.remove("sim:results"); paintBoard(); APP.util.toast("Progreso borrado"); }
-      } })
-    ]));
+    /* Confirmación en dos pasos dentro de la página (sin confirm(), que algunos visores bloquean) */
+    var armed = false;
+    var resetBtn = h("button", { class: "btn btn-ghost btn-danger", id: "reset-progress", text: "Borrar puntuaciones y progreso", onclick: function () {
+      if (!armed) {
+        armed = true;
+        resetBtn.textContent = "Pulsa otra vez para confirmar el borrado";
+        setTimeout(function () { armed = false; resetBtn.textContent = "Borrar puntuaciones y progreso"; }, 4000);
+        return;
+      }
+      armed = false;
+      resetBtn.textContent = "Borrar puntuaciones y progreso";
+      APP.progress.reset(); APP.store.remove("sim:results"); paintBoard(); APP.util.toast("Progreso borrado");
+    } });
+    view.appendChild(h("div", { class: "row", style: "margin-top:12px" }, [resetBtn]));
 
     function start(id) {
       APP.store.set("games:last", id);
