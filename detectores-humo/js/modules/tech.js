@@ -45,31 +45,25 @@
 
   function render(view) {
     state.tech = APP.store.get("tech:last", "optico");
-    view.appendChild(h("div", { class: "page-head" }, [
-      h("div", { class: "kicker", text: "Módulo B" }),
-      h("h1", { text: "¿Cómo detecta el humo?" }),
-      h("p", { text: "Elige una tecnología, cambia el tipo de humo y la sensibilidad, y observa qué ocurre dentro del detector. Completa los experimentos para descubrir sus puntos fuertes y sus límites." })
-    ]));
-
-    var tabs = h("div", { class: "tech-tabs", role: "tablist", "aria-label": "Tecnologías" });
+    if (!APP.techById(state.tech)) state.tech = "optico";
+    var tabs = h("div", { class: "tech-tabs", role: "tablist", "aria-label": "Tipo de detector" });
     APP.data.technologies.forEach(function (t) {
-      tabs.appendChild(h("button", { role: "tab", "data-tech": t.id, "aria-selected": "false", text: t.name, onclick: function () { state.view = "sim"; select(t.id); } }));
+      tabs.appendChild(h("button", { role: "tab", "data-tech": t.id, "aria-selected": "false", text: t.name, onclick: function () { select(t.id); } }));
     });
-    tabs.appendChild(h("button", { role: "tab", "data-tech": "compare", "aria-selected": "false", text: "⇄ Comparar", onclick: function () { state.view = "compare"; select("compare"); } }));
-    view.appendChild(tabs);
-    var body = h("div", { id: "tech-body" });
+    view.appendChild(h("div", { class: "tabs-bar" }, [tabs]));
+    var body = h("div", { id: "tech-body", class: "wrap" });
     view.appendChild(body);
+    view.appendChild(h("p", { class: "foot", text: "Representación didáctica: las animaciones explican la idea, no son medidas de ningún equipo ni sustituyen la prueba real que indique el fabricante. Nunca generes humo ni fuego para probar un detector." }));
 
     function select(id) {
       if (runner) { runner.stop(); runner = null; }
       APP.util.clear(body);
       tabs.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tech") === id ? "true" : "false"); });
-      if (id === "compare") { body.appendChild(compareView()); return; }
       state.tech = id;
       APP.store.set("tech:last", id);
       body.appendChild(techView(APP.techById(id)));
     }
-    select(state.view === "compare" ? "compare" : state.tech);
+    select(state.tech);
   }
 
   /* ---------- Vista de una tecnología ---------- */
@@ -205,33 +199,34 @@
       tech.sim === "ionico" ? h("span", null, [h("i", { style: "background:var(--accent)" }), "iones + / ", h("i", { style: "background:var(--violet)" }), "iones − / ", h("i", { style: "background:var(--led-off)" }), "iones frenados"]) : null
     ]);
 
-    var left = h("div", { class: "panel" }, [
-      h("div", { class: "panel-title" }, [h("h2", { text: tech.name }), h("div", { class: "row" }, [APP.scopeTag("didactico"), status])]),
+    var simPanel = h("section", { class: "panel stage-panel" }, [
+      h("div", { class: "stage-head" }, [h("h1", { text: tech.name }), status]),
       svg,
       legend,
-      h("p", { class: "caption", text: "Esquema simplificado. Las escalas, los retardos y las respuestas son de un modelo didáctico, no medidas de ningún equipo." }),
       h("div", { class: "sim-readout" }, [h("div", null, [meter.el]), heatMeter ? h("div", null, [heatMeter.el]) : null]),
-      h("div", { style: "margin-top:10px" }, [tr.el]),
+      tr.el,
       h("p", { class: "caption", text: "Gráfica: azul = magnitud medida" + (heatMeter ? ", naranja = temperatura" : "") + ". Línea roja discontinua = umbral de alarma." }),
       extra,
-      logic ? logic.el : null,
+      logic ? logic.el : null
+    ]);
+
+    var ctlPanel = h("section", { class: "panel ctl-panel" }, [
+      h("h2", { text: "Controles" }),
       h("div", { class: "control" }, [h("label", null, ["Tipo de humo"]), typeSeg, typeHint]),
       h("div", { class: "control" }, [h("label", { for: "ctl-density" }, ["Cantidad de humo", densOut]), dens]),
-      h("div", { class: "control" }, [h("label", { for: "ctl-sens" }, ["Sensibilidad (menos ← → más)", sensOut]), sens]),
-      specific,
-      h("div", { class: "row", style: "margin-top:12px" }, [pauseBtn, resetBtn])
+      h("div", { class: "control" }, [h("label", { for: "ctl-sens" }, ["Sensibilidad", sensOut]), sens]),
+      specific.childNodes.length ? specific : null,
+      h("div", { class: "row", style: "margin-top:14px" }, [pauseBtn, resetBtn]),
+      h("hr"),
+      h("div", { class: "panel-title" }, [h("h3", { text: "Experimentos" }), taskCount]),
+      taskList,
+      h("button", { class: "btn btn-ghost btn-sm", text: "Reiniciar experimentos", onclick: function () { done = {}; APP.store.set(doneKey, done); paintTasks(); paintCount(); } })
     ]);
 
-    var right = h("div", { class: "stack" }, [
-      h("div", { class: "panel" }, [
-        h("div", { class: "panel-title" }, [h("h3", { text: "Experimentos" }), taskCount]),
-        taskList,
-        h("button", { class: "btn btn-ghost", style: "margin-top:10px", text: "Reiniciar experimentos", onclick: function () { done = {}; APP.store.set(doneKey, done); paintTasks(); paintCount(); } })
-      ]),
+    return h("div", null, [
+      h("div", { class: "sim-grid" }, [simPanel, ctlPanel]),
       infoPanel(tech)
     ]);
-
-    return h("div", { class: "split" }, [left, right]);
   }
 
   function logicPanel() {
@@ -251,9 +246,9 @@
 
   function infoPanel(tech) {
     function list(items) { return h("ul", null, items.map(function (i) { return h("li", { text: i }); })); }
-    return h("div", { class: "panel" }, [
-      h("div", { class: "row", style: "justify-content:space-between" }, [h("h3", { text: "Cómo funciona", style: "margin:0" }), APP.scopeTag("general")]),
-      h("p", { class: "small muted", style: "margin-top:4px", text: tech.scope }),
+    return h("details", { class: "panel info-panel", open: "" }, [
+      h("summary", null, [h("h2", { text: "Cómo funciona" }), APP.scopeTag("general")]),
+      h("p", { class: "small muted", style: "margin-top:8px", text: tech.scope }),
       h("p", { text: tech.principle }),
       h("div", { class: "notice info", style: "margin-bottom:12px" }, [h("span", null, [h("strong", { text: "Con humo: " }), tech.withSmoke])]),
       h("div", { class: "facts" }, [
@@ -268,72 +263,6 @@
       h("p", { class: "small" }, [h("strong", { text: "Norma de producto: " }), tech.standard]),
       APP.sourcesBlock(tech.sources)
     ]);
-  }
-
-  /* ---------- Comparador ---------- */
-  function compareView() {
-    var picked = APP.store.get("compare", ["optico", "ionico", "multisensor"]);
-    var wrap = h("div", { class: "panel" });
-    var chips = h("div", { class: "row", role: "group", "aria-label": "Tecnologías a comparar" });
-    var tableBox = h("div", { class: "table-wrap" });
-    var bars = h("div");
-
-    APP.data.technologies.forEach(function (t) {
-      chips.appendChild(h("button", { class: "chip", "data-cmp": t.id, "aria-pressed": picked.indexOf(t.id) >= 0 ? "true" : "false", text: t.name, onclick: function () {
-        var i = picked.indexOf(t.id);
-        if (i >= 0) { if (picked.length > 1) picked.splice(i, 1); else APP.util.toast("Deja al menos una tecnología"); }
-        else if (picked.length >= 4) APP.util.toast("Compara hasta 4 a la vez");
-        else picked.push(t.id);
-        APP.store.set("compare", picked);
-        paint();
-      } }));
-    });
-
-    function paint() {
-      chips.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", picked.indexOf(b.getAttribute("data-cmp")) >= 0 ? "true" : "false"); });
-      var techs = picked.map(APP.techById);
-      var rows = [
-        ["Familia", function (t) { return t.family; }],
-        ["Dónde se usa", function (t) { return t.scope; }],
-        ["Qué mide", function (t) { return t.short; }],
-        ["Con humo", function (t) { return t.withSmoke; }],
-        ["Ventajas", function (t) { return t.pros.join(" · "); }],
-        ["Limitaciones", function (t) { return t.cons.join(" · "); }],
-        ["Usos típicos", function (t) { return t.uses.join(" · "); }],
-        ["Norma de producto", function (t) { return t.standard; }]
-      ];
-      APP.util.clear(tableBox);
-      tableBox.appendChild(h("table", { class: "compare-table" }, [
-        h("thead", null, h("tr", null, [h("th", { text: "" })].concat(techs.map(function (t) { return h("th", { text: t.name }); })))),
-        h("tbody", null, rows.map(function (r) {
-          return h("tr", null, [h("th", { scope: "row", text: r[0] })].concat(techs.map(function (t) { return h("td", { text: r[1](t) }); })));
-        }))
-      ]));
-
-      APP.util.clear(bars);
-      bars.appendChild(h("div", { class: "row", style: "justify-content:space-between;margin-top:18px" }, [h("h3", { text: "Tendencia de respuesta por tipo de humo", style: "margin:0" }), APP.scopeTag("didactico")]));
-      bars.appendChild(h("p", { class: "small muted", text: "Es el mismo factor cualitativo que usa la simulación. Refleja tendencias de las fuentes (p. ej. USFA), no valores medidos. En «vapor/polvo», una barra alta significa más riesgo de falsa alarma, no una ventaja." }));
-      var grid = h("div", { class: "grid grid-3" });
-      Object.keys(TYPES).forEach(function (k) {
-        grid.appendChild(h("div", { class: "fact" }, [h("h4", { text: TYPES[k].label })].concat(techs.map(function (t) {
-          var v = Math.round((t.factors[k] || 0) * 100);
-          var m = APP.widgets.meter(t.name, "");
-          m.set(v, -10, k === "vapor" && v > 60);
-          m.el.querySelector(".meter-head strong").textContent = v > 75 ? "alta" : v > 45 ? "media" : "baja";
-          return m.el;
-        }))));
-      });
-      bars.appendChild(grid);
-    }
-    paint();
-
-    wrap.appendChild(h("div", { class: "panel-title" }, [h("h2", { text: "Comparador de tecnologías" }), h("span", { class: "small muted", text: "Elige de 1 a 4" })]));
-    wrap.appendChild(chips);
-    wrap.appendChild(h("div", { class: "notice", style: "margin:12px 0" }, [h("span", { text: "No hay una tecnología mejor en todos los casos. La elección depende del tipo de fuego esperado, el ambiente, la normativa aplicable y las especificaciones del fabricante." })]));
-    wrap.appendChild(tableBox);
-    wrap.appendChild(bars);
-    wrap.appendChild(APP.sourcesBlock(["usfa", "en54-7", "en54-12", "en54-20", "en54-29", "en14604"]));
-    return wrap;
   }
 
   APP.register({

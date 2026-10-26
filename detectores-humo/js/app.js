@@ -28,15 +28,5 @@
   });
   paintSound();
 
-  var menuBtn = document.getElementById("menu-btn");
-  function setMenu(open) {
-    document.body.classList.toggle("nav-open", open);
-    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
-  }
-  menuBtn.addEventListener("click", function () { setMenu(!document.body.classList.contains("nav-open")); });
-  document.getElementById("scrim").addEventListener("click", function () { setMenu(false); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") setMenu(false); });
-
-  window.addEventListener("hashchange", APP.route);
   APP.route();
 })();

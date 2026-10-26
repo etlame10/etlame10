@@ -162,8 +162,7 @@ APP.modules = APP.modules || {};
    */
   var current = null;
   function route() {
-    var id = (location.hash || "#inicio").slice(1).split("/")[0] || "inicio";
-    var mod = APP.modules[id] || APP.modules.inicio;
+    var mod = APP.modules.tech;
     var view = document.getElementById("view");
     if (current && current.destroy) {
       try { current.destroy(); } catch (e) { console.error(e); }
@@ -177,19 +176,9 @@ APP.modules = APP.modules || {};
       view.appendChild(h("div", { class: "panel error-panel" }, [
         h("h2", { text: "Algo ha fallado al cargar este módulo" }),
         h("p", { text: String(e && e.message ? e.message : e) }),
-        h("a", { class: "btn", href: "#inicio", text: "Volver al inicio" })
+        h("button", { class: "btn", text: "Recargar", onclick: function () { location.reload(); } })
       ]));
     }
-    progress.visit(mod.id);
-    document.title = mod.title + " · Detectores de humo";
-    document.querySelectorAll(".nav a").forEach(function (a) {
-      var active = a.getAttribute("href") === "#" + mod.id;
-      a.classList.toggle("active", active);
-      if (active) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
-    });
-    document.body.classList.remove("nav-open");
-    var menuBtn = document.getElementById("menu-btn");
-    if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
     view.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
