@@ -26,6 +26,22 @@ async function set(p, id, v) { await p.evaluate(([id, v]) => { const i = documen
   await set(p, "ctl-density", 0); await p.waitForTimeout(3000);
   ok(await p.getAttribute(".stage-head .status", "data-level") === "ok", "sin humo vuelve a reposo");
   await p.click("#btn-pause"); ok((await p.textContent("#btn-pause")) === "Reanudar", "pausa funciona");
+  await p.click("#btn-pause"); // reanudar
+  await p.click("#btn-grow"); await p.waitForTimeout(3000);
+  const d1 = +(await p.inputValue("#ctl-density")); await p.waitForTimeout(2000);
+  const d2 = +(await p.inputValue("#ctl-density"));
+  ok(d1 > 0 && d2 > d1, "«Fuego que crece» sube el humo poco a poco (" + d1 + " → " + d2 + ")");
+  await p.click("#btn-demo"); await p.waitForTimeout(300);
+  ok(await p.isVisible(".demo-box"), "la demostración se abre");
+  const t1 = await p.textContent(".demo-text"); await p.click("#demo-next"); const t2 = await p.textContent(".demo-text");
+  ok(t1 !== t2 && (await p.textContent(".demo-count")) === "2 / 5", "la demostración avanza con el botón");
+  await p.keyboard.press("ArrowRight"); ok((await p.textContent(".demo-count")) === "3 / 5", "la demostración avanza con la flecha del teclado");
+  await p.keyboard.press("Escape"); ok(!(await p.isVisible(".demo-box")), "Escape cierra la demostración");
+  await set(p, "ctl-density", 80); await p.waitForTimeout(5000);
+  ok((await p.getAttribute(".stage-panel", "data-state")) === "alarm", "la alarma se marca en todo el panel (parpadeo rojo)");
+  await p.click("#present-btn"); ok(await p.evaluate(() => document.body.classList.contains("present")), "modo presentación activado");
+  ok(!(await p.isVisible(".info-panel")), "modo presentación oculta los textos largos");
+  await p.click("#present-btn");
   await p.reload(); await p.waitForTimeout(300);
   ok((await p.getAttribute('.tech-tabs button[aria-selected="true"]', "data-tech")) === "optico", "recuerda la última pestaña");
   await p.setViewportSize({ width: 375, height: 800 }); await p.waitForTimeout(200);

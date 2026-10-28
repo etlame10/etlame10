@@ -297,3 +297,54 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 28px
 .info-panel h2 { margin: 0; font-size: 1.15rem; }
 .foot { max-width: 1240px; margin: 20px auto 0; padding: 0 clamp(14px, 3vw, 28px); font-size: .82rem; color: var(--muted); }
 .sim-grid > .panel + .panel { margin-top: 0; }
+
+/* ---------- Alarma visible ---------- */
+.stage-wrap { position: relative; }
+.stage-panel { transition: border-color .2s, box-shadow .2s; }
+.stage-panel[data-state="alarm"] { border-color: var(--bad); animation: alarm-pulse 1s ease-in-out infinite; }
+.stage-panel[data-state="fault"] { border-color: var(--warn); }
+@keyframes alarm-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 0%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--bad) 35%, transparent); }
+}
+.stage-wrap::after { content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none; opacity: 0; transition: opacity .2s; box-shadow: inset 0 0 0 3px var(--bad), inset 0 0 60px color-mix(in srgb, var(--bad) 45%, transparent); }
+.stage-panel[data-state="alarm"] .stage-wrap::after { opacity: 1; animation: flag-blink 1s steps(2, start) infinite; }
+.stage-panel[data-state="fault"] .stage-wrap::after { opacity: 1; box-shadow: inset 0 0 0 3px var(--warn); }
+.stage-head .status[data-level="alarm"] { font-size: 1rem; padding: 6px 14px; background: var(--bad); color: #fff; border-color: var(--bad); animation: flag-blink 1s steps(2, start) infinite; }
+.stage-head .status[data-level="alarm"]::before { background: #fff; }
+@keyframes flag-blink { to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) {
+  .stage-panel[data-state="alarm"], .stage-panel[data-state="alarm"] .stage-wrap::after, .stage-head .status[data-level="alarm"] { animation: none; }
+}
+.btn-fire { background: color-mix(in srgb, var(--warn) 16%, var(--panel)); border-color: var(--warn); }
+
+/* ---------- Demostración ---------- */
+.demo-box {
+  margin-top: 10px; background: var(--accent-soft);
+  border: 1px solid var(--accent); border-radius: 12px; padding: 10px 14px 0; overflow: hidden;
+}
+.demo-box[hidden] { display: none; }
+.demo-top { display: flex; align-items: center; gap: 10px; font-size: .85rem; }
+.demo-top strong { color: var(--accent); text-transform: uppercase; letter-spacing: .06em; font-size: .78rem; }
+.demo-count { color: var(--muted); font-family: var(--mono); }
+.demo-nav { margin-left: auto; display: flex; gap: 4px; }
+.demo-btn { min-width: 34px; height: 30px; border: 1px solid var(--line-2); background: var(--panel); border-radius: 8px; cursor: pointer; font-size: .8rem; }
+.demo-btn:hover { background: var(--panel-2); }
+.demo-text { margin: 6px 0 10px; font-size: 1.02rem; font-weight: 500; line-height: 1.4; }
+.demo-progress { height: 3px; margin: 0 -14px; background: var(--line); }
+.demo-progress i { display: block; height: 100%; width: 0; background: var(--accent); }
+.demo-count { white-space: nowrap; }
+@media (max-width: 640px) {
+  .demo-text { font-size: .95rem; }
+  .brand small { display: none; }
+  .demo-top strong { display: none; }
+}
+
+/* ---------- Modo presentación ---------- */
+body.present { font-size: 18px; }
+body.present .info-panel, body.present .foot, body.present .ctl-panel hr,
+body.present .ctl-panel .panel-title, body.present .ctl-panel .tasks, body.present #btn-reset-tasks { display: none; }
+body.present .wrap, body.present .tech-tabs, body.present .foot { max-width: 1500px; }
+body.present .stage-head h1 { font-size: 1.9rem; }
+body.present .demo-text { font-size: 1.25rem; }
+#present-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }

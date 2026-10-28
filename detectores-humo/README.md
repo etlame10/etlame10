@@ -2,7 +2,13 @@
 
 Página interactiva para ver **cómo detecta el humo cada tipo de detector**: óptico, iónico, de haz, por aspiración, multisensor y térmico (este último, para comparar).
 
-Eliges un detector, cambias el tipo de humo, la cantidad y la sensibilidad, y ves qué pasa dentro: luz, iones, señal y alarma. Cada detector trae experimentos guiados que se marcan solos y una explicación plegable con ventajas, limitaciones y fuentes.
+Eliges un detector, cambias el tipo de humo, la cantidad y la sensibilidad, y ves qué pasa dentro: luz, iones, señal y alarma. Cada detector trae:
+
+- **▶ Demostración:** explica paso a paso lo que ocurre y mueve los controles sola (flechas del teclado para avanzar o retroceder, Escape para salir).
+- **🔥 Fuego que crece:** el humo sube poco a poco desde cero.
+- Experimentos guiados que se marcan solos y una explicación plegable con ventajas, limitaciones y fuentes.
+
+El botón de la pantalla (arriba a la derecha) activa el **modo presentación**: pantalla completa y letra grande. En `PRESENTACION.md` hay un guion para explicarlo en clase.
 
 ## Cómo ejecutarla
 
@@ -12,7 +18,7 @@ Con servidor local: `python3 -m http.server 8000` y abre http://localhost:8000.
 
 ## Pruebas
 
-`node tests/e2e.cjs` (necesita Playwright con Chromium).
+`node tests/e2e.cjs` (necesita Playwright con Chromium). `node tests/demo.cjs` comprueba, en unos 3 minutos, que cada paso de la demostración llega al estado que describe su texto.
 
 ## Aviso
 

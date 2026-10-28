@@ -28,5 +28,21 @@
   });
   paintSound();
 
+  /* Modo presentación: letra grande, sin textos largos y pantalla completa si se puede */
+  var presentBtn = document.getElementById("present-btn");
+  function setPresent(on) {
+    document.body.classList.toggle("present", on);
+    presentBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  presentBtn.addEventListener("click", function () {
+    var on = !document.body.classList.contains("present");
+    setPresent(on);
+    try {
+      if (on && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(function () {});
+      if (!on && document.fullscreenElement) document.exitFullscreen().catch(function () {});
+    } catch (e) { /* pantalla completa no disponible */ }
+  });
+  document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement) setPresent(false); });
+
   APP.route();
 })();

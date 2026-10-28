@@ -40,8 +40,53 @@
     ]
   };
 
+
+  /* Demostración guiada para explicar en clase. Cada paso fija los controles
+   * y, si hace falta, sube el humo poco a poco hasta "density". */
+  var DEMO = {
+    optico: [
+      { text: "En reposo, el LED emite luz, pero el laberinto impide que llegue al fotodiodo.", set: { type: "lenta", density: 0, sens: 5, mode: "disp" }, reset: true },
+      { text: "Entra humo de un fuego lento. Las partículas desvían la luz hacia el fotodiodo y la señal sube.", set: { density: 70 } },
+      { text: "Cuando la señal supera la línea roja (el umbral), el detector da la alarma.", set: {} },
+      { text: "Ahora es vapor de la ducha. No es fuego, pero también desvía la luz: falsa alarma. Por eso no se pone junto al baño.", set: { type: "vapor", density: 75 }, reset: true },
+      { text: "Si bajamos la sensibilidad hace falta más humo para que salte: menos falsas alarmas, pero ante un fuego real avisa más tarde.", set: { sens: 2 } }
+    ],
+    ionico: [
+      { text: "La pequeña fuente radiactiva ioniza el aire entre las dos placas y circula una corriente muy pequeña.", set: { type: "llama", density: 0, sens: 5 }, reset: true },
+      { text: "Entra humo de un fuego con llama. Las partículas atrapan iones y la corriente baja.", set: { density: 70 } },
+      { text: "Cuando la corriente cae por debajo del umbral, da la alarma. Responde muy bien a las partículas pequeñas de las llamas.", set: {} },
+      { text: "Con humo de fuego lento la corriente baja menos. Por eso cada tecnología va mejor con un tipo de fuego.", set: { type: "lenta", density: 70 }, reset: true },
+      { text: "Importante: lleva material radiactivo. No se abre ni se tira a la basura normal; se sigue lo que diga el fabricante.", set: {} }
+    ],
+    haz: [
+      { text: "Un emisor lanza un haz de luz hasta el receptor, de un lado a otro de la nave.", set: { type: "lenta", density: 0, sens: 5, strat: false, blocked: false }, reset: true },
+      { text: "El humo tiene que subir hasta el haz, así que tarda un poco. Cuando lo cruza, al receptor le llega menos luz y, si baja lo suficiente: alarma.", set: { density: 90 }, dur: 15 },
+      { text: "Estratificación: en techos altos el humo puede quedarse por debajo del haz y no llegar a él.", set: { strat: true, density: 70 }, reset: true },
+      { text: "Si algo tapa el haz de golpe, como un palé levantado, no lo confunde con humo: indica avería.", set: { strat: false, blocked: true, density: 0 }, reset: true }
+    ],
+    aspiracion: [
+      { text: "Un ventilador aspira el aire por un tubo con agujeros y lo lleva hasta una cámara de detección.", set: { type: "lenta", density: 0, sens: 8 }, reset: true },
+      { text: "Aparece un poco de humo. Fíjate en que tarda en llegar a la cámara: es el retardo de transporte por el tubo.", set: { density: 35 } },
+      { text: "Aunque el humo es poco denso, lo detecta. Por eso se usa en sitios críticos, como salas de ordenadores.", set: {} }
+    ],
+    multisensor: [
+      { text: "Combina dos sensores: uno óptico de humo y otro de temperatura. Decide mirando los dos.", set: { type: "vapor", density: 0, sens: 5 }, reset: true },
+      { text: "Vapor: la parte de humo lo nota, pero no hay calor. La lógica espera y no da alarma.", set: { density: 70 } },
+      { text: "Fuego con llama: hay humo y además sube la temperatura. Las dos señales coinciden: alarma.", set: { type: "llama", density: 70 }, reset: true },
+      { text: "Cada fabricante usa su propia lógica. Aquí se muestra una versión simplificada.", set: {} }
+    ],
+    termico: [
+      { text: "Este NO detecta humo: mide la temperatura. Lo ponemos para comparar.", set: { type: "lenta", density: 0, sens: 5 }, reset: true },
+      { text: "Fuego lento: mucho humo pero poco calor. No salta. Por eso no sustituye a un detector de humo en un dormitorio.", set: { density: 100 } },
+      { text: "Fuego con llama: la temperatura sube y, al pasar el umbral, da la alarma.", set: { type: "llama", density: 100 }, reset: true },
+      { text: "Con vapor no salta. Por eso a veces se usa en cocinas, donde uno de humo daría falsas alarmas.", set: { type: "vapor", density: 100 }, reset: true }
+    ]
+  };
+  var DEMO_STEP_S = 9;
+
   var state = { tech: "optico", view: "sim" };
-  var runner = null;
+  var runner = null, keyHandler = null;
+  document.addEventListener("keydown", function (e) { if (keyHandler) keyHandler(e); });
 
   function render(view) {
     state.tech = APP.store.get("tech:last", "optico");
@@ -57,6 +102,7 @@
 
     function select(id) {
       if (runner) { runner.stop(); runner = null; }
+      keyHandler = null;
       APP.util.clear(body);
       tabs.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tech") === id ? "true" : "false"); });
       state.tech = id;
@@ -91,16 +137,24 @@
     }
     paintType();
 
+    /* Rampa de humo: sube o baja poco a poco hacia un objetivo */
+    var ramp = null;
+    function setDensity(v) {
+      ctl.density = v; dens.value = Math.round(v / 5) * 5; densOut.textContent = Math.round(v) + " %";
+    }
+    function rampTo(v, speed) { ramp = { to: v, speed: speed || 30 }; changed(); }
+
     var densOut = h("output", { text: "0 %" });
     var dens = h("input", { type: "range", min: 0, max: 100, step: 5, value: 0, id: "ctl-density", "aria-label": "Cantidad de humo" });
-    dens.addEventListener("input", function () { ctl.density = +dens.value; densOut.textContent = dens.value + " %"; changed(); });
+    dens.addEventListener("input", function () { ramp = null; ctl.density = +dens.value; densOut.textContent = dens.value + " %"; changed(); });
     var sensOut = h("output", { text: "5 / 10" });
     var sens = h("input", { type: "range", min: 1, max: 10, step: 1, value: 5, id: "ctl-sens", "aria-label": "Sensibilidad" });
     sens.addEventListener("input", function () { ctl.sens = +sens.value; sensOut.textContent = sens.value + " / 10"; changed(); });
 
     var specific = h("div", { class: "row", style: "margin-top:12px" });
+    var modeSeg = null, stratBtn = null, blockBtn = null;
     if (tech.sim === "optico") {
-      var modeSeg = h("div", { class: "seg", role: "group", "aria-label": "Variante óptica" });
+      modeSeg = h("div", { class: "seg", role: "group", "aria-label": "Variante óptica" });
       [["disp", "Luz dispersa"], ["obsc", "Oscurecimiento (luz transmitida)"]].forEach(function (m) {
         modeSeg.appendChild(h("button", { "data-mode": m[0], "aria-pressed": m[0] === ctl.mode ? "true" : "false", text: m[1], onclick: function () {
           ctl.mode = m[0]; changed();
@@ -110,18 +164,84 @@
       specific.appendChild(modeSeg);
     }
     if (tech.sim === "haz") {
-      var stratBtn = h("button", { class: "chip", id: "btn-strat", "aria-pressed": "false", text: "Estratificación", onclick: function () { ctl.strat = !ctl.strat; stratBtn.setAttribute("aria-pressed", String(ctl.strat)); changed(); } });
-      var blockBtn = h("button", { class: "chip", id: "btn-block", "aria-pressed": "false", text: "Levantar palé en el haz", onclick: function () { ctl.blocked = !ctl.blocked; blockBtn.setAttribute("aria-pressed", String(ctl.blocked)); changed(); } });
+      stratBtn = h("button", { class: "chip", id: "btn-strat", "aria-pressed": "false", text: "Estratificación", onclick: function () { ctl.strat = !ctl.strat; stratBtn.setAttribute("aria-pressed", String(ctl.strat)); changed(); } });
+      blockBtn = h("button", { class: "chip", id: "btn-block", "aria-pressed": "false", text: "Levantar palé en el haz", onclick: function () { ctl.blocked = !ctl.blocked; blockBtn.setAttribute("aria-pressed", String(ctl.blocked)); changed(); } });
       specific.appendChild(stratBtn); specific.appendChild(blockBtn);
     }
 
     var pauseBtn = h("button", { class: "btn", id: "btn-pause", text: "Pausa", onclick: function () {
       ctl.paused = !ctl.paused; pauseBtn.textContent = ctl.paused ? "Reanudar" : "Pausa";
     } });
-    var resetBtn = h("button", { class: "btn btn-ghost", id: "btn-reset", text: "Reiniciar", onclick: function () {
-      ctl.density = 0; dens.value = 0; densOut.textContent = "0 %";
+    function resetSim() {
+      ramp = null; setDensity(0);
       scene.reset(); tr.reset(); alarm = false; changed();
+    }
+    var resetBtn = h("button", { class: "btn btn-ghost", id: "btn-reset", text: "Reiniciar", onclick: function () { stopDemo(); resetSim(); } });
+    var growBtn = h("button", { class: "btn btn-fire", id: "btn-grow", text: "🔥 Fuego que crece", title: "El humo sube poco a poco desde cero", onclick: function () {
+      stopDemo(); resetSim(); rampTo(100, 6);
     } });
+
+    function syncControls() {
+      paintType();
+      sens.value = ctl.sens; sensOut.textContent = ctl.sens + " / 10";
+      if (modeSeg) modeSeg.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-mode") === ctl.mode ? "true" : "false"); });
+      if (stratBtn) stratBtn.setAttribute("aria-pressed", String(ctl.strat));
+      if (blockBtn) blockBtn.setAttribute("aria-pressed", String(ctl.blocked));
+    }
+
+    /* ---- Demostración guiada ---- */
+    var steps = DEMO[tech.sim] || [];
+    var demo = { on: false, i: 0, t: 0, auto: true };
+    var demoText = h("p", { class: "demo-text", "aria-live": "polite" });
+    var demoCount = h("span", { class: "demo-count" });
+    var demoBar = h("i");
+    var autoBtn = h("button", { class: "demo-btn", id: "demo-auto", title: "Avance automático", text: "❚❚", onclick: function () {
+      demo.auto = !demo.auto; autoBtn.textContent = demo.auto ? "❚❚" : "▶"; demo.t = 0;
+    } });
+    var demoBox = h("div", { class: "demo-box", hidden: true }, [
+      h("div", { class: "demo-top" }, [h("strong", { text: "Demostración" }), demoCount,
+        h("span", { class: "demo-nav" }, [
+          h("button", { class: "demo-btn", id: "demo-prev", title: "Paso anterior", text: "◀", onclick: function () { goStep(demo.i - 1); } }),
+          autoBtn,
+          h("button", { class: "demo-btn", id: "demo-next", title: "Paso siguiente", text: "▶▶", onclick: function () { goStep(demo.i + 1); } }),
+          h("button", { class: "demo-btn", id: "demo-close", title: "Salir de la demostración", text: "✕", onclick: function () { stopDemo(); } })
+        ])]),
+      demoText,
+      h("div", { class: "demo-progress" }, [demoBar])
+    ]);
+    var demoBtn = h("button", { class: "btn btn-primary", id: "btn-demo", text: "▶ Demostración", onclick: function () { startDemo(); } });
+
+    function goStep(i) {
+      if (i < 0) i = 0;
+      if (i >= steps.length) { stopDemo(); APP.util.toast("Fin de la demostración"); return; }
+      demo.i = i; demo.t = 0;
+      var st = steps[i], set = st.set || {};
+      if (st.reset) resetSim();
+      ["type", "sens", "mode", "strat", "blocked"].forEach(function (k) { if (k in set) ctl[k] = set[k]; });
+      if ("density" in set) { if (set.density < ctl.density) setDensity(set.density); rampTo(set.density, 25); }
+      ctl.paused = false; pauseBtn.textContent = "Pausa";
+      changed(); syncControls();
+      demoText.textContent = st.text;
+      demoCount.textContent = (i + 1) + " / " + steps.length;
+    }
+    function startDemo() {
+      if (!steps.length) return;
+      demo.on = true; demo.auto = true; autoBtn.textContent = "❚❚";
+      demoBox.hidden = false; demoBtn.hidden = true;
+      goStep(0);
+    }
+    function stopDemo() {
+      if (!demo.on) return;
+      demo.on = false; demoBox.hidden = true; demoBtn.hidden = false;
+    }
+    keyHandler = function (e) {
+      var tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (!demo.on) { if (e.key === "d" || e.key === "D") { startDemo(); e.preventDefault(); } return; }
+      if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { goStep(demo.i + 1); e.preventDefault(); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { goStep(demo.i - 1); e.preventDefault(); }
+      else if (e.key === "Escape") stopDemo();
+    };
 
     /* Experimentos */
     var tasks = TASKS[tech.sim] || [];
@@ -141,12 +261,22 @@
     function paintCount() { taskCount.textContent = Object.keys(done).length + " / " + tasks.length; }
     paintCount();
 
-    var simTime = 0, lastChange = 0, alarm = false;
+    var simTime = 0, lastChange = 0, alarm = false, simPanel = null;
     function changed() { lastChange = simTime; }
 
     runner = APP.util.loop(function (dt) {
       if (ctl.paused) return;
       simTime += dt;
+      if (ramp) {
+        var d = ramp.to - ctl.density, stepD = ramp.speed * dt;
+        if (Math.abs(d) <= stepD) { setDensity(ramp.to); ramp = null; } else setDensity(ctl.density + (d > 0 ? stepD : -stepD));
+        changed();
+      }
+      if (demo.on) {
+        if (demo.auto) demo.t += dt;
+        demoBar.style.width = Math.min(100, demo.t / (steps[demo.i].dur || DEMO_STEP_S) * 100) + "%";
+        if (demo.auto && demo.t >= (steps[demo.i].dur || DEMO_STEP_S)) goStep(demo.i + 1);
+      }
       var r = scene.step(dt, simTime);
       var T = threshold(ctl.sens);
       var level, label, effT = T;
@@ -176,6 +306,7 @@
         if (level === "alarm" && status.getAttribute("data-level") !== "alarm") APP.util.beep(3100, 200);
         status.setAttribute("data-level", level);
         status.textContent = label;
+        simPanel.setAttribute("data-state", level);
       }
       var thrShown = r.invert ? 100 - effT : effT;
       meter.el.querySelector(".meter-head span").textContent = r.label;
@@ -199,9 +330,10 @@
       tech.sim === "ionico" ? h("span", null, [h("i", { style: "background:var(--accent)" }), "iones + / ", h("i", { style: "background:var(--violet)" }), "iones − / ", h("i", { style: "background:var(--led-off)" }), "iones frenados"]) : null
     ]);
 
-    var simPanel = h("section", { class: "panel stage-panel" }, [
-      h("div", { class: "stage-head" }, [h("h1", { text: tech.name }), status]),
-      svg,
+    simPanel = h("section", { class: "panel stage-panel", "data-state": "ok" }, [
+      h("div", { class: "stage-head" }, [h("h1", { text: tech.name }), h("div", { class: "row" }, [demoBtn, status])]),
+      h("div", { class: "stage-wrap" }, [svg]),
+      demoBox,
       legend,
       h("div", { class: "sim-readout" }, [h("div", null, [meter.el]), heatMeter ? h("div", null, [heatMeter.el]) : null]),
       tr.el,
@@ -216,11 +348,11 @@
       h("div", { class: "control" }, [h("label", { for: "ctl-density" }, ["Cantidad de humo", densOut]), dens]),
       h("div", { class: "control" }, [h("label", { for: "ctl-sens" }, ["Sensibilidad", sensOut]), sens]),
       specific.childNodes.length ? specific : null,
-      h("div", { class: "row", style: "margin-top:14px" }, [pauseBtn, resetBtn]),
+      h("div", { class: "row", style: "margin-top:14px" }, [growBtn, pauseBtn, resetBtn]),
       h("hr"),
       h("div", { class: "panel-title" }, [h("h3", { text: "Experimentos" }), taskCount]),
       taskList,
-      h("button", { class: "btn btn-ghost btn-sm", text: "Reiniciar experimentos", onclick: function () { done = {}; APP.store.set(doneKey, done); paintTasks(); paintCount(); } })
+      h("button", { class: "btn btn-ghost btn-sm", id: "btn-reset-tasks", text: "Reiniciar experimentos", onclick: function () { done = {}; APP.store.set(doneKey, done); paintTasks(); paintCount(); } })
     ]);
 
     return h("div", null, [

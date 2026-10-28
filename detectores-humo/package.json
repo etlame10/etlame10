@@ -5,6 +5,7 @@
   "description": "Simulador interactivo de detectores de humo",
   "scripts": {
     "start": "python3 -m http.server 8000",
-    "test": "node tests/e2e.cjs"
+    "test": "node tests/e2e.cjs",
+    "test:demo": "node tests/demo.cjs"
   }
 }
