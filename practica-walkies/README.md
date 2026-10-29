@@ -111,8 +111,11 @@ Las cifras se pronuncian una a una, por ejemplo "cuatro-cuatro-seis" para 446.
 
 ### Ejemplo de comunicado entre los dos walkies
 > A: "Estación B, estación B, aquí estación A. ¿Me recibes? Cambio."
+>
 > B: "Estación A, aquí B. QSL, te recibo 5-9. Cambio."
+>
 > A: "QSL. Mi QTH es el taller de Telecomunicaciones. Deletreo: Tango-Echo-Lima-Echo-Charlie-Oscar. Cambio."
+>
 > B: "Recibido. Pasamos a QRT. Cambio y cierro."
 
 Fuentes: [Código Q (URE)](https://www.ure.es/codigo-q/), [Código Q de señales (Wikipedia)](https://es.wikipedia.org/wiki/C%C3%B3digo_Q_de_se%C3%B1ales), [Alfabet fonètic de l'OTAN (Viquipèdia)](https://ca.wikipedia.org/wiki/Alfabet_fon%C3%A8tic_de_l%27OTAN).
@@ -120,6 +123,10 @@ Fuentes: [Código Q (URE)](https://www.ure.es/codigo-q/), [Código Q de señales
 ## 6. Hoja de trabajo (para firma del profesor)
 | Pareja | Frecuencia | Tono CTCSS/DCS | Potencia | Prueba de comunicación (OK / no) | Firma del profesor |
 |---|---|---|---|---|---|
+| | | | | | |
+| | | | | | |
+| | | | | | |
+| | | | | | |
 | | | | | | |
 
 ## 7. Entrega
