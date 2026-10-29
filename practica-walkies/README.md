@@ -68,6 +68,55 @@ Esto no es cifrado: cualquiera con la misma frecuencia, aunque tenga otro tono, 
 
 Implementación en clase 📷: documentar, para cada pareja, el tono elegido, los pasos de menú pulsados y una prueba de que con tonos distintos no se oyen. Hacer una foto de la pantalla.
 
+## 5 bis. Procedimiento de operación: códigos Q y alfabeto fonético
+En half-duplex solo puede hablar uno a la vez, así que los mensajes deben ser cortos y claros. Antes de soltar el PTT se dice "cambio". Para cerrar la comunicación se dice "cambio y cierro" (o QRT).
+
+### Códigos Q más usados
+| Código | Como pregunta (con ?) | Como afirmación |
+|---|---|---|
+| QRA | ¿Cómo se llama su estación? | Mi estación se llama… |
+| QRK | ¿Qué inteligibilidad tienen mis señales? | Sus señales son de inteligibilidad 1 a 5 |
+| QRM | ¿Tiene interferencias de otras estaciones? | Tengo interferencias |
+| QRN | ¿Le molestan los parásitos atmosféricos? | Tengo ruido atmosférico |
+| QRO | ¿Aumento la potencia? | Aumente la potencia |
+| QRP | ¿Disminuyo la potencia? | Disminuya la potencia |
+| QRT | ¿Dejo de transmitir? | Dejo de transmitir / cierro |
+| QRV | ¿Está preparado? | Estoy preparado |
+| QRX | ¿Cuándo volverá a llamarme? | Espere, le llamaré de nuevo |
+| QRZ | ¿Quién me llama? | Le llama… |
+| QSA | ¿Qué intensidad tienen mis señales? | Sus señales tienen intensidad 1 a 5 |
+| QSB | ¿Varía la intensidad de mis señales? | Sus señales tienen desvanecimiento |
+| QSL | ¿Puede acusar recibo? | Acuso recibo / recibido |
+| QSO | ¿Puede comunicar con…? | Puedo comunicar con… / comunicado |
+| QSY | ¿Cambio a otra frecuencia? | Pase a otra frecuencia |
+| QTH | ¿Cuál es su posición? | Mi posición es… |
+| QTR | ¿Qué hora es? | La hora exacta es… |
+
+Para dar el control de señal se usa el código RS: legibilidad (R, de 1 a 5) e intensidad (S, de 1 a 9). Por ejemplo, "te recibo 5-9" significa perfectamente legible y señal muy fuerte.
+
+### Alfabeto fonético internacional (OTAN / OACI)
+| Letra | Palabra | Letra | Palabra | Letra | Palabra |
+|---|---|---|---|---|---|
+| A | Alfa | J | Juliett | S | Sierra |
+| B | Bravo | K | Kilo | T | Tango |
+| C | Charlie | L | Lima | U | Uniform |
+| D | Delta | M | Mike | V | Victor |
+| E | Echo | N | November | W | Whiskey |
+| F | Foxtrot | O | Oscar | X | X-ray |
+| G | Golf | P | Papa | Y | Yankee |
+| H | Hotel | Q | Quebec | Z | Zulu |
+| I | India | R | Romeo | | |
+
+Las cifras se pronuncian una a una, por ejemplo "cuatro-cuatro-seis" para 446.
+
+### Ejemplo de comunicado entre los dos walkies
+> A: "Estación B, estación B, aquí estación A. ¿Me recibes? Cambio."
+> B: "Estación A, aquí B. QSL, te recibo 5-9. Cambio."
+> A: "QSL. Mi QTH es el taller de Telecomunicaciones. Deletreo: Tango-Echo-Lima-Echo-Charlie-Oscar. Cambio."
+> B: "Recibido. Pasamos a QRT. Cambio y cierro."
+
+Fuentes: [Código Q (URE)](https://www.ure.es/codigo-q/), [Código Q de señales (Wikipedia)](https://es.wikipedia.org/wiki/C%C3%B3digo_Q_de_se%C3%B1ales), [Alfabet fonètic de l'OTAN (Viquipèdia)](https://ca.wikipedia.org/wiki/Alfabet_fon%C3%A8tic_de_l%27OTAN).
+
 ## 6. Hoja de trabajo (para firma del profesor)
 | Pareja | Frecuencia | Tono CTCSS/DCS | Potencia | Prueba de comunicación (OK / no) | Firma del profesor |
 |---|---|---|---|---|---|
